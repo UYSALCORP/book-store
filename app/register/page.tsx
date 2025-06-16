@@ -1,32 +1,45 @@
 'use client';
-import Head from 'next/head';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { loginSchema } from "../zodSchema/login";
-import { useRouter } from 'next/navigation';
+import { registerSchema } from '../zodSchema/register';
+import useSWRMutation from 'swr/mutation';
+import { registerUser } from '../utils/auth';
+
+type FormData = z.infer<typeof registerSchema>;
 
 export default function Register() {
   const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const form = e.currentTarget;
-    const formData = new FormData(form);
-    
-    const userData = {
-      name: formData.get('name'),
-      email: formData.get('email'),
-      password: formData.get('password'),
-    };
+  const { register, handleSubmit, formState: { errors, isDirty, isValid }, setError, reset } = useForm<FormData>({
+    resolver: zodResolver(registerSchema),
+  });
 
-    // Store user data in localStorage
-    localStorage.setItem('userData', JSON.stringify(userData));
+  const { trigger: registerMutation, isMutating } = useSWRMutation(
+    '/api/rest/register',
+    async (_url, { arg }: { arg: FormData }) => {
+      return registerUser(arg);
+    }
+  );
 
-    // Redirect to login page
-    router.push('/');
-  };
+  async function onSubmit(data: FormData) {
+    try {
+      const response = await registerMutation(data);
+      
+      if (response) {
+        // Clear form on success
+        reset();
+        router.push("/login");
+      }
+    } catch (error) {
+      setError('root', {
+        type: 'manual',
+        message: error instanceof Error ? error.message : 'Registration failed'
+      });
+    }
+  }
 
   return (
     <div className="flex h-screen">
@@ -50,19 +63,27 @@ export default function Register() {
           </h2>
           <p className="text-2xl font-semibold text-gray-800 mb-16">Create your account</p>
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            {errors.root && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-sm">
+                <p className="text-red-600 text-sm">{errors.root.message}</p>
+              </div>
+            )}
             <div className="mb-4">
               <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
                 Name
               </label>
               <input
+                {...register("name", { required: true })}
                 id="name"
                 name="name"
                 type="text"
                 placeholder="John Doe"
                 className="w-full px-4 py-2 border rounded-sm placeholder:text-gray-400 text-black"
-                required
               />
+              {errors.name && (
+                <p className='text-red-600 text-sm'>{errors?.name?.message}</p>
+              )}
             </div>
 
             <div className="mb-4">
@@ -70,13 +91,16 @@ export default function Register() {
                 E-mail
               </label>
               <input
+                {...register("email", { required: true })}
                 id="email"
                 name="email"
                 type="email"
                 placeholder="john@mail.com"
                 className="w-full px-4 py-2 border rounded-sm placeholder:text-gray-400 text-black"
-                required
               />
+              {errors.email && (
+                <p className='text-red-600 text-sm'>{errors?.email?.message}</p>
+              )}
             </div>
 
             <div className="mb-4">
@@ -84,26 +108,30 @@ export default function Register() {
                 Password
               </label>
               <input
+                {...register("password", { required: true })}
                 id="password"
                 name="password"
                 type="password"
                 placeholder="********"
                 className="w-full px-4 py-2 border rounded-sm placeholder:text-gray-400 text-black"
-                required
               />
+              {errors.password && (
+                <p className='text-red-600 text-sm'>{errors?.password?.message}</p>
+              )}
             </div>
 
             <button
               type="submit"
-              className="w-full bg-orange-600 text-white py-2 rounded-b-xs hover:bg-orange-700 transition mt-10"
+              disabled={!isDirty || !isValid || isMutating}
+              className="w-full bg-orange-600 text-white py-2 rounded-b-xs hover:bg-orange-700 transition mt-10 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Register
+              {isMutating ? 'Registering...' : 'Register'}
             </button>
 
             <button
               type="button"
-              onClick={() => router.push('/')}
-              className="w-full text-purple-600 border border-purple-600 py-2 px-6 rounded-b-xs hover:bg-purple-50  mt-4 text-center"
+              onClick={() => router.push('/login')}
+              className="w-full text-purple-600 border border-purple-600 py-2 px-6 rounded-b-xs hover:bg-purple-50 mt-4 text-center"
             >
               Login
             </button>
