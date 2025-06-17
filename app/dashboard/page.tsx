@@ -10,8 +10,11 @@ export default function Dashboard(){
   return (
     <div className="bg-white h-screen">
       <Navbar />
+      <div className="w-[80%] m-auto pt-11 mt-20 ">
+        <Carousel slides={slides}/>
+      </div>
       <div className="w-[80%] m-auto pt-11 mt-20">
-        <Carousel slides={slides} />
+        {/* Categories output will shown here */}
       </div>
     </div>
   )
