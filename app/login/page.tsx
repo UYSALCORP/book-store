@@ -7,6 +7,7 @@ import * as z from "zod";
 import { loginSchema } from "../zodSchema/login";
 import useSWRMutation from 'swr/mutation';
 import { loginUser } from '../utils/auth';
+import Carousel from '../components/shared/Carousel';
 
 // Define the login schema using Zod
 type FormData = z.infer<typeof loginSchema>;
@@ -47,14 +48,13 @@ export default function Login() {
     return (
         <div className="flex h-screen">
             {/* Left side background image */}
-            <Image
+             <Image
                 src="/images/picture.png"
                 alt="Login Background"
                 width={1000}
                 height={1000}
                 className="hidden md:flex w-1/2 bg-cover bg-center"
-            />
-
+            /> 
             {/* Right side login form */}
             <div className="flex w-full md:w-1/2 justify-center items-center bg-white">
                 <div className="w-full max-w-md px-8">
