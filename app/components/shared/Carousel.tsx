@@ -1,9 +1,9 @@
 "use client";
 
-import { CSSProperties, useState } from "react";
+import { useState } from "react";
 import CustomSvg from "./CustomSvg";
 
-export default function Carousel({ slides = [],style }: { slides?: string[],style?: CSSProperties }) {
+export default function Carousel({ slides = []}: { slides?: string[]}) {
     const [current, setCurrent] = useState(0);
 
     const handleSelect = (index: number) => {
@@ -15,7 +15,7 @@ export default function Carousel({ slides = [],style }: { slides?: string[],styl
             {/* Slides */}
             <div
                 className="flex transition-transform duration-500 ease-in-out"
-                style={{...style, transform: `translateX(-${current * 100}%)` }}
+                style={{ transform: `translateX(-${current * 100}%)` }}
             >
                 {slides.map((src, idx) => (
                     <img
